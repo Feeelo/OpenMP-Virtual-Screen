@@ -31,6 +31,8 @@ cmake ..
 make
 ```
 
+Note: If you are running on an apple silicone based Macbook (M chips), you will run into an error while building due to line 32 of the CMakeLists.txt. Commenting it out should let the build succeed. This also means that you can't run the SIMD optimized code but you can still examine it to see the differences.
+
 To run the executables
 ```
 # Make sure you are in the build directory
