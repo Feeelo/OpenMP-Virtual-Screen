@@ -49,9 +49,9 @@ Inside `src/vector_norm.cpp` there is a serial implementation of a vector norm. 
 
 | OpenMP Directive | Time taken |
 |------------------|------------|
-| critcal          |            |
-| atomic           |            |
-| reduction        |            |
+| critcal          | 9.4351 s   |
+| atomic           | 2.16992 s  |
+| reduction        | 0.012474 s |
 
 Make sure your parallel solution has the same answer as the serial!
 Results using reduction below on 16 threads:
@@ -75,8 +75,8 @@ Do both methods and compare the speeds:
 
 | Method           | Time taken |
 |------------------|------------|
-| manual reduction |            |
-| custom reduction |            |
+| manual reduction | 0.0799399 s |
+| custom reduction | 0.0939033 s |
 
 Make sure your parallel solution has the same answer as the serial!
 

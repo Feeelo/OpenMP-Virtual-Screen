@@ -14,12 +14,47 @@ double norm_serial(const std::vector<double>& v) {
 }
 
 // -----------------------------------------
-// Parallel vector norm
+// Parallel vector norm - critical
 // -----------------------------------------
-double norm_parallel(const std::vector<double>& v) {
+double norm_parallel_critical(const std::vector<double>& v) {
     double sum = 0.0;
 
-    // YOUR CODE HERE
+    #pragma omp parallel for
+    for (size_t i = 0; i < v.size(); ++i) {
+        double term = v[i] * v[i];
+        #pragma omp critical
+        sum += term;
+    }
+
+    return std::sqrt(sum);
+}
+
+// -----------------------------------------
+// Parallel vector norm - atomic
+// -----------------------------------------
+double norm_parallel_atomic(const std::vector<double>& v) {
+    double sum = 0.0;
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < v.size(); ++i) {
+        double term = v[i] * v[i];
+        #pragma omp atomic
+        sum += term;
+    }
+
+    return std::sqrt(sum);
+}
+
+// -----------------------------------------
+// Parallel vector norm - reduction
+// -----------------------------------------
+double norm_parallel_reduction(const std::vector<double>& v) {
+    double sum = 0.0;
+
+    #pragma omp parallel for reduction(+:sum)
+    for (size_t i = 0; i < v.size(); ++i) {
+        sum += v[i] * v[i];
+    }
 
     return std::sqrt(sum);
 }
@@ -37,21 +72,37 @@ int main() {
     std::chrono::duration<double> elapsed_serial = end_serial - start_serial;
     double t_serial = elapsed_serial.count();
 
-    // Parallel timing
-    auto start_parallel = std::chrono::high_resolution_clock::now();
-    double out_parallel = norm_parallel(v);
-    auto end_parallel = std::chrono::high_resolution_clock::now();
+    // Parallel timing: critical
+    auto start_critical = std::chrono::high_resolution_clock::now();
+    double out_critical = norm_parallel_critical(v);
+    auto end_critical = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_critical = end_critical - start_critical;
 
-    std::chrono::duration<double> elapsed_parallel = end_parallel - start_parallel;
-    double t_parallel = elapsed_parallel.count();
+    // Parallel timing: atomic
+    auto start_atomic = std::chrono::high_resolution_clock::now();
+    double out_atomic = norm_parallel_atomic(v);
+    auto end_atomic = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_atomic = end_atomic - start_atomic;
+
+    // Parallel timing: reduction
+    auto start_reduction = std::chrono::high_resolution_clock::now();
+    double out_reduction = norm_parallel_reduction(v);
+    auto end_reduction = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_reduction = end_reduction - start_reduction;
 
     // Print
     std::cout << "Serial norm    = " << out_serial << "\n";
-    std::cout << "Parallel norm  = " << out_parallel << "\n\n";
+    std::cout << "Critical norm  = " << out_critical << "\n";
+    std::cout << "Atomic norm    = " << out_atomic << "\n";
+    std::cout << "Reduction norm = " << out_reduction << "\n\n";
 
     std::cout << "Serial time    = " << t_serial    << " s\n";
-    std::cout << "Parallel time  = " << t_parallel  << " s\n";
-    std::cout << "Speedup        = " << t_serial / t_parallel << "x\n";
+    std::cout << "Critical time  = " << elapsed_critical.count()  << " s\n";
+    std::cout << "Atomic time    = " << elapsed_atomic.count()    << " s\n";
+    std::cout << "Reduction time = " << elapsed_reduction.count() << " s\n";
+    std::cout << "Critical speedup  = " << t_serial / elapsed_critical.count() << "x\n";
+    std::cout << "Atomic speedup    = " << t_serial / elapsed_atomic.count() << "x\n";
+    std::cout << "Reduction speedup = " << t_serial / elapsed_reduction.count() << "x\n";
 
     return 0;
 }
